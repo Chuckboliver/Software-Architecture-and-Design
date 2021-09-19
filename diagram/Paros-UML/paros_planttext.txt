@@ -1,0 +1,204 @@
+@startuml
+
+title Paros Class Diagram
+
++class Paros {
+    -init() void
+    -run() void
+    -runCommandLine() void
+    -runGUI() void 
+    -showLicense() void
+    -checkUpdate() void
+}
+
++class Constant {
+    {static} +PROGRAM_NAME String
+    {static} +PROGRAM_VERSION String
+    {static} +VERSION_TAG long
+    {static} +getInstance() Constant
+    {static} +isWindows() boolean
+    {static} +isLinux() boolean
+}
+
++abstract class FileXML {
+    #doc Document
+    #docBuilder DocumentBuilder
+    #docBuilderFactory  DocumentBuilderFactory
+    +getDocument() Document
+    #getElement(String) Element
+    #getElement(String[]) Element
+}
+
++abstract class AbstractParam {
+    -config FileConfiguration
+    +load(FileConfiguration) void
+    +load(String) void
+    +load() void
+}
+
++class Control extends AbstractControl{
+    -proxy Proxy
+    -menuFileControl MenuFileControl
+    -menuToolsControl MenuToolsControl
+    #addExtension() void
+    +getMenuFileControl() MenuFileControl
+    +getMenuToolsControl() MenuToolsControl
+}
+
++abstract class AbstractControl {
+    #loader ExtensionLoader
+    #model Model
+    #view View
+    +getExtensionLoader() ExtensionLoader
+    #loadExtension() void
+    #add#Extension() void
+}
+
++class Proxy {
+    -reverseProxy boolean
+    -reverseProxyHost String
+    -cacheProcessList Vector
+    +startServer() void
+    +stopServer() void
+    +isReverseProxy() boolean
+}
+
++class MenuFileControl {
+    -view View
+    -model Model
+    -control Control
+    +exit() void
+    +openSession() void
+    +saveSession() void
+}
+
++class MenuToolsControl {
+    -view View
+    -model Model
+    -control Control
+    +option() void
+}
+
++class ProxyServer {
+    #thread Thread
+    {static} #PORT_TIME_OUT int
+    #proxySocket ServerSocket
+    +isSerialize() boolean
+    +getConnectionParam() ConnectionParam
+    +getProxyParam() ProxyParam
+}
+
++class ProxyServerSSL extends ProxyServer{
+    {static} -ssl SSLConnector
+    #createProxyProcess(Socket) ProxyThread
+    #createServerSocket(String, int) ServerSocket
+}
+
++class ProxyParam extends AbstractParam{
+    {static} -USE_REVERSE_PROXY String
+    {static} -REVERSE_PROXY_IP String
+    {static} -REVERSE_PROXY_HTTP_PORT String
+    +getProxyIp() String
+    +getProxy() int
+    +getProxySSL() int
+}
+
+class ProxyThread {
+    #parentServer ProxyServer
+    #proxyParam ProxyParam
+    #connectionParam ConnectionParam
+    +start() void
+    -beginSSL() void
+    +run() void
+}
+
++class Database {
+    -databaseServer DatabaseServer
+    -tableHistory TableHistory
+    -tableSession TableSession
+    +open(String) void
+    +close(boolean) void
+    -setDatabaseServer(DatabaseServer) void
+}
+
+
++class Model {
+    -DBNAME_UNTITLED String
+    {static} -DBNAME_COPY int
+    -session Session
+    +getSession() Session
+    +init() void
+    +createAndOpenUntitledDb() void
+}
+
++class Session extends FileXML{
+    -sessionId long
+    -sessionName String
+    -siteTree SiteMap
+    +discard() void
+    +getSession() long
+    +getSessionDesc() String
+}
+
++class OptionsParam extends AbstractParam{
+    -config XMLConfiguration
+    -gui boolean
+    -userDirectory File
+    +getConnectionParam() ConnectionParam
+    +getProxyParam() ProxyParam
+    +getViewParam() OptionsParamView
+}
+
++class HttpUtil {
+    +sleep(int) void
+    +closeServerSocket(ServerSocket) void
+    +closeSocket(Socket) void
+}
+
++class View implements ViewDelegate{
+    -mainFrame MainFrame
+    +getSiteTreePanel() SiteMapPanel
+    +getOutputPanel() OutputPanel
+    +getRequestPanel() HttpPanel
+}
+
++interface ViewDelegate {
+    +getMainFrame() MainFrame
+    +getSiteTreePanel() SiteMapPanel
+    +getOutputPanel() OutputPanel
+}
+
+Paros ..> Constant : <<uses>>
+Paros ..> Model : <<uses>>
+Paros ..> Control : <<uses>>
+Paros ..> View : <<uses>>
+
+Constant ..> Constant : <<uses>>
+
+Control o-- Proxy
+Control o-- MenuFileControl
+Control o-- MenuToolsControl
+Control ..> Control : <<uses>>
+
+
+Proxy *-- ProxyServer
+Proxy *-- ProxyServerSSL
+
+
+ProxyServer *-- ProxyParam
+ProxyServer o-- ProxyThread
+ProxyServer ..> HttpUtil : <<uses>>
+
+
+Database ..> Database : <<uses>>
+
+Model ..> Model : <<uses>>
+Model ..> Database : <<uses>>
+Model *-- OptionsParam
+Model *-- Session
+
+OptionsParam *-- ProxyParam
+
+View ..> View : <<uses>>
+
+@enduml
